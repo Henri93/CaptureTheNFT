@@ -2,8 +2,9 @@
 
 - [ ] Create a tradeable 1/1 NFT on a public platform where the owner is able to update the URI
 	- [x] Tradeable on open market
-	- [ ] 1/1 Can't be minted or burned by others
+	- [x] 1/1 Can't be minted or burned by others
 	- [ ] Owner can update the URI
+	- [ ] Test contract on test network
 
 - [ ] Create app clients that display this NFT information
 

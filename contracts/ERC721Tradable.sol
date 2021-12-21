@@ -4,7 +4,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -21,7 +21,7 @@ contract ProxyRegistry {
 
 //@title ERC721Tradable
 //ERC721Tradable - ERC721 contract that whitelists a trading address, and has minting functionality.
-abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction, Ownable {
+abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction, AccessControl {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
 
@@ -33,6 +33,8 @@ abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction,
     Counters.Counter private _nextTokenId;
     address proxyRegistryAddress;
 
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
     constructor(
         string memory _name,
         string memory _symbol,
@@ -42,22 +44,26 @@ abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction,
         // nextTokenId is initialized to 1, since starting at 0 leads to higher gas cost for the first minter
         _nextTokenId.increment();
         _initializeEIP712(_name);
+        // Grant the contract deployer the default admin role: it will be able
+        // to grant and revoke any roles
+        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _setupRole(MINTER_ROLE, _msgSender());
     }
 
     
      //@dev Mints a token to an address with a tokenURI.
      //@param _to address of the future owner of the token
      //
-    function mintTo(address _to) public onlyOwner {
+    function mintTo(address _to) public {
+        require(hasRole(MINTER_ROLE, _msgSender()), "Caller is not a minter");
         uint256 currentTokenId = _nextTokenId.current();
         _nextTokenId.increment();
         _safeMint(_to, currentTokenId);
     }
 
-    /**
-        @dev Returns the total tokens minted so far.
-        1 is always subtracted from the Counter since it tracks the next available tokenId.
-     */
+    
+    //@dev Returns the total tokens minted so far.
+    //    1 is always subtracted from the Counter since it tracks the next available tokenId.
     function totalSupply() public view returns (uint256) {
         return _nextTokenId.current() - 1;
     }
@@ -68,9 +74,8 @@ abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction,
         return string(abi.encodePacked(baseTokenURI(), Strings.toString(_tokenId)));
     }
 
-    /**
-     * Override isApprovedForAll to whitelist user's OpenSea proxy accounts to enable gas-less listings.
-     */
+
+    //Override isApprovedForAll to whitelist user's OpenSea proxy accounts to enable gas-less listings.
     function isApprovedForAll(address owner, address operator)
         override
         public
@@ -86,9 +91,7 @@ abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction,
         return super.isApprovedForAll(owner, operator);
     }
 
-    /**
-     * This is used instead of msg.sender as transactions won't be sent by the original token owner, but by OpenSea.
-     */
+    //This is used instead of msg.sender as transactions won't be sent by the original token owner, but by OpenSea.
     function _msgSender()
         internal
         override
@@ -96,5 +99,9 @@ abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction,
         returns (address sender)
     {
         return ContextMixin.msgSender();
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {
+        return super.supportsInterface(interfaceId);
     }
 }
