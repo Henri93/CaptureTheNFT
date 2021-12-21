@@ -8,9 +8,9 @@ const contractAddress = process.env.NFT_CONTRACT_ADDRESS
 const nftContract = new web3.eth.Contract(contract.abi, contractAddress)
 
  async function getURI() {
-    var uri = nftContract.methods.tokenURI(1).call()
-    uri.then((signedTx) => {
-      console.log("uri="+signedTx);
+    var uri = nftContract.methods.baseTokenURI().call()
+    uri.then((baseURI) => {
+      console.log("uri="+baseURI);
     })
 }
 
