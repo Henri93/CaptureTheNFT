@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -21,7 +22,7 @@ contract ProxyRegistry {
 
 //@title ERC721Tradable
 //ERC721Tradable - ERC721 contract that whitelists a trading address, and has minting functionality.
-abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction, AccessControl {
+abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction, AccessControl, Ownable {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
 
@@ -32,6 +33,7 @@ abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction,
      //
     Counters.Counter private _nextTokenId;
     address proxyRegistryAddress;
+    string baseURI;
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -46,10 +48,13 @@ abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction,
         _initializeEIP712(_name);
         // Grant the contract deployer the default admin role: it will be able
         // to grant and revoke any roles
-        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        _setupRole(MINTER_ROLE, _msgSender());
+        _setupRole(DEFAULT_ADMIN_ROLE, _proxyRegistryAddress);
+        _setupRole(MINTER_ROLE, _proxyRegistryAddress);
     }
 
+    function changeURI(string memory _tokenURI) public onlyOwner {
+        baseURI = _tokenURI;
+    }
     
      //@dev Mints a token to an address with a tokenURI.
      //@param _to address of the future owner of the token
@@ -68,12 +73,13 @@ abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction,
         return _nextTokenId.current() - 1;
     }
 
-    function baseTokenURI() virtual public pure returns (string memory);
-
-    function tokenURI(uint256 _tokenId) override public pure returns (string memory) {
-        return string(abi.encodePacked(baseTokenURI(), Strings.toString(_tokenId)));
+    function baseTokenURI() public view returns (string memory) {
+        return baseURI;
     }
 
+    function tokenURI(uint256 _tokenId) override public view returns (string memory) {
+        return string(abi.encodePacked(baseTokenURI(), Strings.toString(_tokenId)));
+    }
 
     //Override isApprovedForAll to whitelist user's OpenSea proxy accounts to enable gas-less listings.
     function isApprovedForAll(address owner, address operator)

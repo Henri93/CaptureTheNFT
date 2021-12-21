@@ -4,15 +4,8 @@ pragma solidity ^0.8.0;
 
 import "./ERC721Tradable.sol";
 
+// The Flag that people can 'capture' by owning
+// only the owner can update the URI to point to their data
 contract TheFlag is ERC721Tradable  {
-
     constructor(address _proxyRegistryAddress) ERC721Tradable("TheFlag", "CTNFT", _proxyRegistryAddress) {}
-
-    function baseTokenURI() override public pure returns (string memory) {
-        return "https://creatures-api.opensea.io/api/creature/";
-    }
-
-    function contractURI() public pure returns (string memory) {
-        return "https://creatures-api.opensea.io/contract/opensea-creatures";
-    }
 }
