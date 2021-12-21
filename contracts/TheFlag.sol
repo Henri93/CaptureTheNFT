@@ -2,27 +2,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "./ERC721Tradable.sol";
 
-contract TheFlag is ERC721URIStorage, Ownable {
-    using Counters for Counters.Counter;
-    Counters.Counter private _tokenIds;
+contract TheFlag is ERC721Tradable  {
+    
+    constructor(address _proxyRegistryAddress)
+        ERC721Tradable("TheFlag", "CTNFT", _proxyRegistryAddress)
+    {}
 
-    constructor() public ERC721("TheFlag", "CTNFT") {}
+    function baseTokenURI() override public pure returns (string memory) {
+        return "https://creatures-api.opensea.io/api/creature/";
+    }
 
-    function mintNFT(address recipient, string memory tokenURI)
-        public onlyOwner
-        returns (uint256)
-    {
-        _tokenIds.increment();
-
-        uint256 newItemId = _tokenIds.current();
-        _mint(recipient, newItemId);
-        _setTokenURI(newItemId, tokenURI);
-
-        return newItemId;
+    function contractURI() public pure returns (string memory) {
+        return "https://creatures-api.opensea.io/contract/opensea-creatures";
     }
 }
