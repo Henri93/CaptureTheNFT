@@ -1,10 +1,11 @@
 # CaptureTheNFT
 
-- [ ] Create a tradeable 1/1 NFT on a public platform where the owner is able to update the URI
+- [x] Create a tradeable 1/1 NFT on a public platform where the owner is able to update the URI
 	- [x] Tradeable on open market
 	- [x] 1/1 Can't be minted or burned by others
 	- [x] Flag holder can update the URI
-	- [ ] Test contract on test network
+	- [x] Test contract on test network
+	- [ ] Deploy to Main net
 
 - [ ] Create app clients that display this NFT information
 

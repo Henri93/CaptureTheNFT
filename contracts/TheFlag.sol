@@ -7,5 +7,5 @@ import "./ERC721Tradable.sol";
 // The Flag that people can 'capture' by owning
 // only the owner can update the URI to point to their data
 contract TheFlag is ERC721Tradable  {
-    constructor(address _proxyRegistryAddress) ERC721Tradable("TheFlag", "CTNFT", _proxyRegistryAddress) {}
+    constructor(address _proxyRegistryAddress) ERC721Tradable("TheFlag", "FLAG", _proxyRegistryAddress) {}
 }
