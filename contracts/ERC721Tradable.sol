@@ -6,7 +6,6 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./common/meta-transactions/ContentMixin.sol";
@@ -23,17 +22,10 @@ contract ProxyRegistry {
 //ERC721Tradable - ERC721 contract that whitelists a trading address, and has minting functionality.
 abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction, AccessControl, Ownable {
     using SafeMath for uint256;
-    using Counters for Counters.Counter;
 
-    
-     //We rely on the OZ Counter util to keep track of the next available ID.
-     //We track the nextTokenId instead of the currentTokenId to save users on gas costs. 
-     //Read more about it here: https://shiny.mirror.xyz/OUampBbIz9ebEicfGnQf5At_ReMHlZy0tB4glb9xQ0E
-     //
-    Counters.Counter private _nextTokenId;
     address proxyRegistryAddress;
+    address flagHolder;
     string baseURI;
-
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     constructor(
@@ -43,8 +35,6 @@ abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction,
         address _proxyRegistryAddress
     ) ERC721(_name, _symbol) {
         proxyRegistryAddress = _proxyRegistryAddress;
-        // nextTokenId is initialized to 1, since starting at 0 leads to higher gas cost for the first minter
-        _nextTokenId.increment();
         _initializeEIP712(_name);
         baseURI = _tokenURI;
 
@@ -52,27 +42,42 @@ abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction,
         // to grant and revoke any roles
         _setupRole(DEFAULT_ADMIN_ROLE, _proxyRegistryAddress);
         _setupRole(MINTER_ROLE, _proxyRegistryAddress);
+        flagHolder = _proxyRegistryAddress;
     }
 
-    // Only the owenr can call this to update the token's metadata
-    function changeURI(string memory _tokenURI) public onlyOwner {
+    function _transfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal override {
+        super._transfer(from, to, tokenId);
+        // swap flagholder
+        flagHolder = to;
+    }
+
+    // Only the flag holder can call this to update the token's metadata
+    function changeURI(string memory _tokenURI) public {
+        require(_msgSender() == flagHolder, "Caller is not the flag holder!");
         baseURI = _tokenURI;
     }
     
      //@dev Mints a token to an address with a tokenURI.
      //@param _to address of the future owner of the token
+     //since it is 1/1 we set the tokenID to 1
     function mintTo(address _to) public {
         require(hasRole(MINTER_ROLE, _msgSender()), "Caller is not a minter");
-        uint256 currentTokenId = _nextTokenId.current();
-        _nextTokenId.increment();
-        _safeMint(_to, currentTokenId);
+        _safeMint(_to, 1);
+    }
+
+    // checks if an address is a flag holder
+    function isFlagHolder(address addToCheck) public view returns (bool) {
+        return addToCheck == flagHolder;
     }
 
     
     //@dev Returns the total tokens minted so far.
-    //    1 is always subtracted from the Counter since it tracks the next available tokenId.
-    function totalSupply() public view returns (uint256) {
-        return _nextTokenId.current() - 1;
+    function totalSupply() public pure returns (uint256) {
+        return 1;
     }
 
     function baseTokenURI() public view returns (string memory) {
