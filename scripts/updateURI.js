@@ -45,4 +45,4 @@ const nftContract = new web3.eth.Contract(contract.abi, contractAddress)
       })
    }
 
-updateURI("ipfs://bafybeic3ui4dj5dzsvqeiqbxjgg3fjmfmiinb3iyd2trixj2voe4jtefgq/metadata.json")
+updateURI("https://gateway.pinata.cloud/ipfs/QmaqLCuKYRkf2ntHKxRqRx1d8nTiS85Xo21ygWzewawH5q")
