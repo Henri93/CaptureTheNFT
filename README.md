@@ -4,7 +4,7 @@
 	- [x] Tradeable on open market
 	- [x] 1/1 Can't be minted or burned by others
 	- [x] Flag holder can update the URI
-	- [x] Test contract on test network - https://testnets.opensea.io/assets/0x5bfdc3f0e47aa212f81e19060db1bb9708dc75c1/1
+	- [x] Test contract on test network - https://testnets.opensea.io/assets/0xdb6ea8bdef9d657a2cd2ec62fe8a11f99284c113/1
 		- Admin can mint a token but not more than 1 [![Test Case 1](https://img.shields.io/badge/Status-Passed-green.svg)](https://shields.io/)
 		- Non Admin can't mint a token [![Test Case 2](https://img.shields.io/badge/Status-Passed-green.svg)](https://shields.io/)
 		- Owner can change URI [![Test Case 3](https://img.shields.io/badge/Status-Passed-green.svg)](https://shields.io/)
