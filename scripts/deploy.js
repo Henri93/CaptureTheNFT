@@ -1,5 +1,5 @@
 async function main() {
-  const TheFlag = await ethers.getContractFactory("TheFlag")
+  const TheFlag = await ethers.getContractFactory("CaptureTheFlag")
 
   // Start deployment, returning a promise that resolves to a contract object
   const theFlag = await TheFlag.deploy(process.env.OWNER_ADDRESS)

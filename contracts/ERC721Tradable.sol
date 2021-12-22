@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
 import "./common/meta-transactions/ContentMixin.sol";
 import "./common/meta-transactions/NativeMetaTransaction.sol";
 
@@ -40,25 +39,28 @@ abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction,
     constructor(
         string memory _name,
         string memory _symbol,
+        string memory _tokenURI,
         address _proxyRegistryAddress
     ) ERC721(_name, _symbol) {
         proxyRegistryAddress = _proxyRegistryAddress;
         // nextTokenId is initialized to 1, since starting at 0 leads to higher gas cost for the first minter
         _nextTokenId.increment();
         _initializeEIP712(_name);
+        baseURI = _tokenURI;
+
         // Grant the contract deployer the default admin role: it will be able
         // to grant and revoke any roles
         _setupRole(DEFAULT_ADMIN_ROLE, _proxyRegistryAddress);
         _setupRole(MINTER_ROLE, _proxyRegistryAddress);
     }
 
+    // Only the owenr can call this to update the token's metadata
     function changeURI(string memory _tokenURI) public onlyOwner {
         baseURI = _tokenURI;
     }
     
      //@dev Mints a token to an address with a tokenURI.
      //@param _to address of the future owner of the token
-     //
     function mintTo(address _to) public {
         require(hasRole(MINTER_ROLE, _msgSender()), "Caller is not a minter");
         uint256 currentTokenId = _nextTokenId.current();
