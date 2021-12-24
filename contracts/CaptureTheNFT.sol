@@ -4,8 +4,6 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./common/meta-transactions/ContentMixin.sol";
@@ -20,28 +18,25 @@ contract ProxyRegistry {
 
 //@title ERC721Tradable
 //ERC721Tradable - ERC721 contract that whitelists a trading address, and has minting functionality.
-abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction, AccessControl, Ownable {
+contract CaptureTheNFT is ERC721, ContextMixin, NativeMetaTransaction {
     using SafeMath for uint256;
 
     address proxyRegistryAddress;
     address flagHolder;
+    address internal minter;
     string baseURI;
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     constructor(
         string memory _name,
         string memory _symbol,
-        string memory _tokenURI,
+        string memory _uri,
         address _proxyRegistryAddress
     ) ERC721(_name, _symbol) {
         proxyRegistryAddress = _proxyRegistryAddress;
         _initializeEIP712(_name);
-        baseURI = _tokenURI;
 
-        // Grant the contract deployer the default admin role: it will be able
-        // to grant and revoke any roles
-        _setupRole(DEFAULT_ADMIN_ROLE, _proxyRegistryAddress);
-        _setupRole(MINTER_ROLE, _proxyRegistryAddress);
+        baseURI = _uri;
+        minter = _proxyRegistryAddress;
         flagHolder = _proxyRegistryAddress;
     }
 
@@ -57,7 +52,7 @@ abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction,
 
     // Only the flag holder can call this to update the token's metadata
     function changeURI(string memory _tokenURI) public {
-        require(_msgSender() == flagHolder, "Caller is not the flag holder!");
+        require(_msgSender() == flagHolder, "!flag holder");
         baseURI = _tokenURI;
     }
     
@@ -65,13 +60,8 @@ abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction,
      //@param _to address of the future owner of the token
      //since it is 1/1 we set the tokenID to 1
     function mintTo(address _to) public {
-        require(hasRole(MINTER_ROLE, _msgSender()), "Caller is not a minter");
+        require(_msgSender() == minter, "!minter");
         _safeMint(_to, 1);
-    }
-
-    // checks if an address is a flag holder
-    function isFlagHolder(address addToCheck) public view returns (bool) {
-        return addToCheck == flagHolder;
     }
 
     
@@ -80,13 +70,9 @@ abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction,
         return 1;
     }
 
-    function baseTokenURI() public view returns (string memory) {
-        return baseURI;
-    }
-
     // since we know this is 1/1, just return baseTokenURI
     function tokenURI(uint256 _tokenId) override public view returns (string memory) {
-        return string(abi.encodePacked(baseTokenURI()));
+        return string(abi.encodePacked(baseURI));
     }
 
     //Override isApprovedForAll to whitelist user's OpenSea proxy accounts to enable gas-less listings.
@@ -113,9 +99,5 @@ abstract contract ERC721Tradable is ERC721, ContextMixin, NativeMetaTransaction,
         returns (address sender)
     {
         return ContextMixin.msgSender();
-    }
-
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {
-        return super.supportsInterface(interfaceId);
     }
 }
