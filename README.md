@@ -11,9 +11,7 @@
 		- Non-Owner can't change URI [![Test Case 4](https://img.shields.io/badge/Status-Passed-green.svg)](https://shields.io/)
 		- Owner can list for sale on OpenSea [![Test Case 5](https://img.shields.io/badge/Status-Passed-green.svg)](https://shields.io/)
 		- Transfered Owner can change URI [![Test Case 6](https://img.shields.io/badge/Status-Passed-green.svg)](https://shields.io/)
-	- [ ] Deploy to Main net
-
-- [ ] Create app clients that display this NFT information
+	- [x] Deploy to Main net @ 0xbE5f41cdB6e7db7eCe0716900B44a90946760AD8
 
 - [ ] Create web client that displays this information
 
