@@ -13,7 +13,7 @@
 		- Transfered Owner can change URI [![Test Case 6](https://img.shields.io/badge/Status-Passed-green.svg)](https://shields.io/)
 	- [x] Deploy to Main net @ 0xbE5f41cdB6e7db7eCe0716900B44a90946760AD8
 
-- [ ] Create web client that displays this information
+- [x] Create web client that displays this information
 
 - [ ] Create a wiki about how to buy the NFT and update URI
 
